@@ -1,4 +1,4 @@
-# @ai16z/plugin-agentkit
+# @elizaos/plugin-agentkit
 
 AgentKit plugin for Eliza that enables interaction with CDP AgentKit tools for NFT and token management.
 
