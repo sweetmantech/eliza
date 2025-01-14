@@ -1,5 +1,6 @@
 import type { Plugin } from "@ai16z/eliza";
-import { walletProvider } from "./provider";
+import { walletProvider, getClient } from "./provider";
+import { getAgentKitActions } from "./actions";
 
 export const agentKitPlugin: Plugin = {
     name: "[AgentKit] Integration",
@@ -7,7 +8,12 @@ export const agentKitPlugin: Plugin = {
     providers: [walletProvider],
     evaluators: [],
     services: [],
-    actions: [],
+    actions: await getAgentKitActions({
+        getClient,
+        config: {
+            networkId: "base-sepolia",
+        },
+    }),
 };
 
 export default agentKitPlugin;

@@ -1,12 +1,4 @@
 import {
-    type WalletClient,
-    type Plugin,
-    getDeferredTools,
-    addParametersToDescription,
-    type ChainForWalletClient,
-    type DeferredTool,
-} from "@goat-sdk/core";
-import {
     type Action,
     generateText,
     type HandlerCallback,
@@ -17,49 +9,49 @@ import {
     composeContext,
     generateObjectV2,
 } from "@ai16z/eliza";
+import { CdpAgentkit } from "@coinbase/cdp-agentkit-core";
+import { CdpToolkit, type Tool } from "@coinbase/cdp-langchain";
 
-type GetOnChainActionsParams<TWalletClient extends WalletClient> = {
-    chain: ChainForWalletClient<TWalletClient>;
-    getWalletClient: (runtime: IAgentRuntime) => Promise<TWalletClient>;
-    plugins: Plugin<TWalletClient>[];
-    supportsSmartWallets?: boolean;
+type GetAgentKitActionsParams = {
+    getClient: () => Promise<CdpAgentkit>;
+    config?: {
+        networkId?: string;
+    };
 };
 
+const AVAILABLE_TOOLS = {
+    GET_WALLET_DETAILS: "getWalletDetails",
+    DEPLOY_NFT: "deployNFT",
+    DEPLOY_TOKEN: "deployToken",
+    GET_BALANCE: "getBalance",
+    MINT_NFT: "mintNFT",
+    REGISTER_BASENAME: "registerBasename",
+    REQUEST_FAUCET_FUNDS: "requestFaucetFunds",
+    TRADE: "trade",
+    TRANSFER: "transfer",
+    WOW_BUY_TOKEN: "wowBuyToken",
+    WOW_SELL_TOKEN: "wowSellToken",
+    WOW_CREATE_TOKEN: "wowCreateToken",
+} as const;
+
 /**
- * Get all the on chain actions for the given wallet client and plugins
- *
- * @param params
- * @returns
+ * Get all AgentKit actions
  */
-export async function getOnChainActions<TWalletClient extends WalletClient>({
-    getWalletClient,
-    plugins,
-    chain,
-    supportsSmartWallets,
-}: GetOnChainActionsParams<TWalletClient>): Promise<Action[]> {
-    const tools = await getDeferredTools<TWalletClient>({
-        plugins,
-        wordForTool: "action",
-        chain,
-        supportsSmartWallets,
-    });
+export async function getAgentKitActions({
+    getClient,
+    config,
+}: GetAgentKitActionsParams): Promise<Action[]> {
+    // Initialize CDP AgentKit Toolkit and get tools
+    const agentkit = await getClient();
+    const cdpToolkit = new CdpToolkit(agentkit);
+    const tools = cdpToolkit.getTools();
+    console.log("SWEETMAN------------------------");
 
-    return tools
-        .map((action) => ({
-            ...action,
-            name: action.name.toUpperCase(),
-        }))
-        .map((tool) => createAction(tool, getWalletClient));
-}
-
-function createAction<TWalletClient extends WalletClient>(
-    tool: DeferredTool<TWalletClient>,
-    getWalletClient: (runtime: IAgentRuntime) => Promise<TWalletClient>
-): Action {
-    return {
-        name: tool.name,
-        similes: [],
+    // Map each tool to an Eliza action
+    const actions = tools.map((tool: Tool) => ({
+        name: tool.name.toUpperCase(),
         description: tool.description,
+        similes: [],
         validate: async () => true,
         handler: async (
             runtime: IAgentRuntime,
@@ -69,12 +61,14 @@ function createAction<TWalletClient extends WalletClient>(
             callback?: HandlerCallback
         ): Promise<boolean> => {
             try {
-                const walletClient = await getWalletClient(runtime);
+                const client = await getClient();
+                console.log("SWEETMAN CLIENT------------------------", client);
                 let currentState =
                     state ?? (await runtime.composeState(message));
                 currentState =
                     await runtime.updateRecentMessageState(currentState);
 
+                // Generate parameters based on the tool's schema
                 const parameterContext = composeParameterContext(
                     tool,
                     currentState
@@ -85,19 +79,14 @@ function createAction<TWalletClient extends WalletClient>(
                     tool
                 );
 
-                const parsedParameters = tool.parameters.safeParse(parameters);
-                if (!parsedParameters.success) {
-                    callback?.({
-                        text: `Invalid parameters for action ${tool.name}: ${parsedParameters.error.message}`,
-                        content: { error: parsedParameters.error.message },
-                    });
-                    return false;
-                }
-
-                const result = await tool.method(
-                    walletClient,
-                    parsedParameters.data
+                // Execute the tool based on its type
+                const result = await executeToolAction(
+                    tool,
+                    parameters,
+                    client
                 );
+
+                // Generate response
                 const responseContext = composeResponseContext(
                     tool,
                     result,
@@ -121,45 +110,59 @@ function createAction<TWalletClient extends WalletClient>(
             }
         },
         examples: [],
-    };
+    }));
+    console.log("SWEETMAN ACTIONS------------------------", actions);
+    return actions;
 }
 
-function composeParameterContext<TWalletClient extends WalletClient>(
-    tool: DeferredTool<TWalletClient>,
-    state: State
-): string {
+async function executeToolAction(
+    tool: Tool,
+    parameters: any,
+    client: CdpAgentkit
+): Promise<unknown> {
+    const toolkit = new CdpToolkit(client);
+    const tools = toolkit.getTools();
+    const selectedTool = tools.find((t) => t.name === tool.name);
+
+    if (!selectedTool) {
+        throw new Error(`Tool ${tool.name} not found`);
+    }
+
+    return await selectedTool.call(parameters);
+}
+
+function composeParameterContext(tool: any, state: State): string {
     const contextTemplate = `{{recentMessages}}
 
 Given the recent messages, extract the following information for the action "${tool.name}":
-${addParametersToDescription("", tool.parameters)}
+${tool.description}
 `;
     return composeContext({ state, template: contextTemplate });
 }
 
-async function generateParameters<TWalletClient extends WalletClient>(
+async function generateParameters(
     runtime: IAgentRuntime,
     context: string,
-    tool: DeferredTool<TWalletClient>
+    tool: any
 ): Promise<unknown> {
     const { object } = await generateObjectV2({
         runtime,
         context,
         modelClass: ModelClass.LARGE,
-        schema: tool.parameters,
+        schema: tool.schema,
     });
 
     return object;
 }
 
-function composeResponseContext<TWalletClient extends WalletClient>(
-    tool: DeferredTool<TWalletClient>,
+function composeResponseContext(
+    tool: any,
     result: unknown,
     state: State
 ): string {
     const responseTemplate = `
-    # Action Examples
+# Action Examples
 {{actionExamples}}
-(Action examples are for reference only. Do not use the information from them in your response.)
 
 # Knowledge
 {{knowledge}}
@@ -184,7 +187,7 @@ ${JSON.stringify(result)}
 
 Respond to the message knowing that the action was successful and these were the previous messages:
 {{recentMessages}}
-  `;
+`;
     return composeContext({ state, template: responseTemplate });
 }
 
