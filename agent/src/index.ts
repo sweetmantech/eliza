@@ -736,8 +736,11 @@ export async function createAgent(
         character,
         // character.plugins are handled when clients are added
         plugins: [
-            agentKitPlugin,
             bootstrapPlugin,
+            getSecret(character, "CDP_API_KEY_NAME") &&
+            getSecret(character, "CDP_API_KEY_PRIVATE_KEY")
+                ? agentKitPlugin
+                : null,
             getSecret(character, "CONFLUX_CORE_PRIVATE_KEY")
                 ? confluxPlugin
                 : null,
