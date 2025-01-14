@@ -6,6 +6,7 @@
     "types": "dist/index.d.ts",
     "dependencies": {
         "@ai16z/eliza": "workspace:*",
+        "@coinbase/cdp-agentkit-core": "^0.0.10",
         "@goat-sdk/core": "0.3.8",
         "@goat-sdk/plugin-erc20": "0.1.7",
         "@goat-sdk/wallet-viem": "0.1.3",

@@ -1,7 +1,7 @@
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-
+import { CdpAgentkit } from "@coinbase/cdp-agentkit-core";
 import { Memory, Provider, State, type IAgentRuntime } from "@ai16z/eliza";
 import { viem } from "@goat-sdk/wallet-viem";
 
@@ -42,9 +42,13 @@ export const walletProvider: Provider = {
     ): Promise<string | null> {
         try {
             const walletClient = await getWalletClient(runtime);
-            const address = walletClient.getAddress();
-            const balance = await walletClient.balanceOf(address);
-            return `EVM Wallet Address: ${address}\nBalance: ${balance} ETH`;
+            const config = {
+                networkId: process.env.AGENTKIT_NETWORK_ID || "base-sepolia",
+            };
+            const agentkit = await CdpAgentkit.configureWithWallet(config);
+            const walletAddress = await agentkit.wallet.addresses[0].id;
+            const balance = await walletClient.balanceOf(walletAddress);
+            return `EVM Wallet Address: ${walletAddress}\nBalance: ${balance} ETH`;
         } catch (error) {
             console.error("Error in EVM wallet provider:", error);
             return null;
