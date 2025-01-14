@@ -19,21 +19,6 @@ type GetAgentKitActionsParams = {
     };
 };
 
-const AVAILABLE_TOOLS = {
-    GET_WALLET_DETAILS: "getWalletDetails",
-    DEPLOY_NFT: "deployNFT",
-    DEPLOY_TOKEN: "deployToken",
-    GET_BALANCE: "getBalance",
-    MINT_NFT: "mintNFT",
-    REGISTER_BASENAME: "registerBasename",
-    REQUEST_FAUCET_FUNDS: "requestFaucetFunds",
-    TRADE: "trade",
-    TRANSFER: "transfer",
-    WOW_BUY_TOKEN: "wowBuyToken",
-    WOW_SELL_TOKEN: "wowSellToken",
-    WOW_CREATE_TOKEN: "wowCreateToken",
-} as const;
-
 /**
  * Get all AgentKit actions
  */
