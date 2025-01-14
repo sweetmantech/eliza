@@ -163,6 +163,9 @@ importers:
       '@elizaos/plugin-abstract':
         specifier: workspace:*
         version: link:../packages/plugin-abstract
+      '@elizaos/plugin-agentkit':
+        specifier: workspace:*
+        version: link:../packages/plugin-agentkit
       '@elizaos/plugin-akash':
         specifier: workspace:*
         version: link:../packages/plugin-akash
