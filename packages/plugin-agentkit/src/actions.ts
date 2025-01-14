@@ -128,7 +128,7 @@ ${tool.description}
 async function generateParameters(
     runtime: IAgentRuntime,
     context: string,
-    tool: any
+    tool: Tool
 ): Promise<unknown> {
     const { object } = await generateObjectV2({
         runtime,
@@ -141,7 +141,7 @@ async function generateParameters(
 }
 
 function composeResponseContext(
-    tool: any,
+    tool: Tool,
     result: unknown,
     state: State
 ): string {
