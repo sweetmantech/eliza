@@ -26,13 +26,11 @@ export async function getAgentKitActions({
     getClient,
     config,
 }: GetAgentKitActionsParams): Promise<Action[]> {
-    // Initialize CDP AgentKit Toolkit and get tools
     const agentkit = await getClient();
     const cdpToolkit = new CdpToolkit(agentkit);
     const tools = cdpToolkit.getTools();
     console.log("SWEETMAN------------------------");
 
-    // Map each tool to an Eliza action
     const actions = tools.map((tool: Tool) => ({
         name: tool.name.toUpperCase(),
         description: tool.description,
@@ -53,7 +51,6 @@ export async function getAgentKitActions({
                 currentState =
                     await runtime.updateRecentMessageState(currentState);
 
-                // Generate parameters based on the tool's schema
                 const parameterContext = composeParameterContext(
                     tool,
                     currentState
@@ -64,14 +61,12 @@ export async function getAgentKitActions({
                     tool
                 );
 
-                // Execute the tool based on its type
                 const result = await executeToolAction(
                     tool,
                     parameters,
                     client
                 );
 
-                // Generate response
                 const responseContext = composeResponseContext(
                     tool,
                     result,
