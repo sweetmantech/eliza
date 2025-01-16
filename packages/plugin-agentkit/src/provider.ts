@@ -4,7 +4,9 @@ import * as fs from "fs";
 
 const WALLET_DATA_FILE = "wallet_data.txt";
 
-export async function getClient(): Promise<CdpAgentkit> {
+export async function getClient(
+    networkId: string = "base-sepolia"
+): Promise<CdpAgentkit> {
     let walletDataStr: string | null = null;
 
     // Read existing wallet data if available
@@ -20,7 +22,7 @@ export async function getClient(): Promise<CdpAgentkit> {
     // Configure CDP AgentKit
     const config = {
         cdpWalletData: walletDataStr || undefined,
-        networkId: "base-sepolia",
+        networkId,
     };
 
     const agentkit = await CdpAgentkit.configureWithWallet(config);
@@ -34,7 +36,9 @@ export async function getClient(): Promise<CdpAgentkit> {
 export const walletProvider: Provider = {
     async get(runtime: IAgentRuntime): Promise<string | null> {
         try {
-            const client = await getClient();
+            const client = await getClient(
+                runtime.getSetting("COINBASE_AGENT_KIT_NETWORK")
+            );
             const address = (await (client as any).wallet.addresses)[0].id;
             return `AgentKit Wallet Address: ${address}`;
         } catch (error) {

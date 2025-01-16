@@ -24,7 +24,6 @@ type GetAgentKitActionsParams = {
  */
 export async function getAgentKitActions({
     getClient,
-    config,
 }: GetAgentKitActionsParams): Promise<Action[]> {
     const agentkit = await getClient();
     const cdpToolkit = new CdpToolkit(agentkit);

@@ -10,9 +10,6 @@ export const agentKitPlugin: Plugin = {
     services: [],
     actions: await getAgentKitActions({
         getClient,
-        config: {
-            networkId: "base-sepolia",
-        },
     }),
 };
 
