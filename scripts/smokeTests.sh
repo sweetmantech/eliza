@@ -36,19 +36,11 @@ cd "$PROJECT_DIR"
 
 cp .env.example .env
 
-# Check for global pnpm and get its path
-PNPM_PATH=$(command -v pnpm)
-if [ -z "$PNPM_PATH" ]; then
-    echo "pnpm is required but not installed. Install with: npm install -g pnpm"
-    exit 1
-fi
+pnpm clean
 
-# Use the full path to pnpm for all commands
-"$PNPM_PATH" clean
+pnpm install -r --no-frozen-lockfile
 
-"$PNPM_PATH" install -r --no-frozen-lockfile
-
-"$PNPM_PATH" build
+pnpm build
 
 # Create temp file and ensure cleanup
 OUTFILE="$(mktemp)"
@@ -61,7 +53,7 @@ INTERVAL=5   # Represent 0.5 seconds as 5 tenths of a second
 TIMER=0
 
 # Start the application and capture logs in the background
-"$PNPM_PATH" start --character=characters/trump.character.json > "$OUTFILE" 2>&1 &
+pnpm start --character=characters/trump.character.json > "$OUTFILE" 2>&1 &
 
 APP_PID=$!  # Capture the PID of the background process
 
