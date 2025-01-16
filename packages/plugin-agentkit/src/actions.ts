@@ -29,8 +29,6 @@ export async function getAgentKitActions({
     const agentkit = await getClient();
     const cdpToolkit = new CdpToolkit(agentkit);
     const tools = cdpToolkit.getTools();
-    console.log("SWEETMAN------------------------");
-
     const actions = tools.map((tool: Tool) => ({
         name: tool.name.toUpperCase(),
         description: tool.description,
@@ -45,7 +43,6 @@ export async function getAgentKitActions({
         ): Promise<boolean> => {
             try {
                 const client = await getClient();
-                console.log("SWEETMAN CLIENT------------------------", client);
                 let currentState =
                     state ?? (await runtime.composeState(message));
                 currentState =
@@ -91,7 +88,6 @@ export async function getAgentKitActions({
         },
         examples: [],
     }));
-    console.log("SWEETMAN ACTIONS------------------------", actions);
     return actions;
 }
 
