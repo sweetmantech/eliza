@@ -15,6 +15,7 @@ pnpm install
 ```env
 CDP_API_KEY_NAME=your_key_name
 CDP_API_KEY_PRIVATE_KEY=your_private_key
+CDP_AGENT_KIT_NETWORK=base-sepolia # Optional: Defaults to base-sepolia
 ```
 
 3. Add the plugin to your character configuration:
@@ -25,8 +26,7 @@ CDP_API_KEY_PRIVATE_KEY=your_private_key
     "settings": {
         "secrets": {
             "CDP_API_KEY_NAME": "your_key_name",
-            "CDP_API_KEY_PRIVATE_KEY": "your_private_key",
-            "networkId": "base-sepolia"
+            "CDP_API_KEY_PRIVATE_KEY": "your_private_key"
         }
     }
 }
@@ -98,12 +98,12 @@ pnpm dev
 
 ## Network Support
 
-The plugin currently supports the following networks:
+The plugin supports the following networks:
 
 -   Base Sepolia (default)
 -   Base Mainnet
 
-Configure the network using the `networkId` setting in your character configuration.
+Configure the network using the `CDP_AGENT_KIT_NETWORK` environment variable.
 
 ## Troubleshooting
 
