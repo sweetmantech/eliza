@@ -12,6 +12,7 @@ import { TelegramClientInterface } from "@elizaos/client-telegram";
 import { TwitterClientInterface } from "@elizaos/client-twitter";
 import { FarcasterClientInterface } from "@elizaos/client-farcaster";
 import { DirectClient } from "@elizaos/client-direct";
+import { agentKitPlugin } from "@elizaos/plugin-agentkit";
 // import { ReclaimAdapter } from "@elizaos/plugin-reclaim";
 import { PrimusAdapter } from "@elizaos/plugin-primus";
 import { elizaCodeinPlugin, onchainJson } from "@elizaos/plugin-iq6900";
@@ -206,7 +207,9 @@ export async function loadCharacterFromOnchain(): Promise<Character[]> {
 
         // .id isn't really valid
         const characterId = character.id || character.name;
-        const characterPrefix = `CHARACTER.${characterId.toUpperCase().replace(/ /g, "_")}.`;
+        const characterPrefix = `CHARACTER.${characterId
+            .toUpperCase()
+            .replace(/ /g, "_")}.`;
 
         const characterSettings = Object.entries(process.env)
             .filter(([key]) => key.startsWith(characterPrefix))
@@ -249,7 +252,6 @@ export async function loadCharacterFromOnchain(): Promise<Character[]> {
     }
 }
 
-
 async function loadCharactersFromUrl(url: string): Promise<Character[]> {
     try {
         const response = await fetch(url);
@@ -279,7 +281,9 @@ async function jsonToCharacter(
 
     // .id isn't really valid
     const characterId = character.id || character.name;
-    const characterPrefix = `CHARACTER.${characterId.toUpperCase().replace(/ /g, "_")}.`;
+    const characterPrefix = `CHARACTER.${characterId
+        .toUpperCase()
+        .replace(/ /g, "_")}.`;
     const characterSettings = Object.entries(process.env)
         .filter(([key]) => key.startsWith(characterPrefix))
         .reduce((settings, [key, value]) => {
@@ -389,8 +393,9 @@ export async function loadCharacters(
     if (characterPaths?.length > 0) {
         for (const characterPath of characterPaths) {
             try {
-                const character: Character =
-                    await loadCharacterTryPath(characterPath);
+                const character: Character = await loadCharacterTryPath(
+                    characterPath
+                );
                 loadedCharacters.push(character);
             } catch (e) {
                 process.exit(1);
@@ -863,6 +868,10 @@ export async function createAgent(
                 ? elizaCodeinPlugin
                 : null,
             bootstrapPlugin,
+            getSecret(character, "CDP_API_KEY_NAME") &&
+            getSecret(character, "CDP_API_KEY_PRIVATE_KEY")
+                ? agentKitPlugin
+                : null,
             getSecret(character, "DEXSCREENER_API_KEY")
                 ? dexScreenerPlugin
                 : null,
